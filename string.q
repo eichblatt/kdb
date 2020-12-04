@@ -13,4 +13,8 @@ stringify:{[s]
    result:orig_type$new_str;
    result};
    
-append:2
+.string.append:{[s1;s2] 
+   if[.Q.ty[s1]~"C";s1:.string.stringify[s1]];
+   orig_type:.Q.ty[s1];
+   new_str:orig_type$.string.stringify[s1],.string.stringify[s2];
+   new_str}
