@@ -1,7 +1,8 @@
 \d .core
 
-\l /home/steve/kdb/string.q
-\l /home/steve/kdb/file.q
-\l /home/steve/kdb/dict.q
-\l /home/steve/kdb/opts.q
+/system["l ", getenv[`HOME],"/kdb/init.q"]
+\l /home/steve/kdb/util/string.q
+\l /home/steve/kdb/util/file.q
+\l /home/steve/kdb/util/dict.q
+\l /home/steve/kdb/util/opts.q
 
