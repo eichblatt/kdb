@@ -16,7 +16,7 @@ split:{[t;b;s;c] // split table by b on columns s, return columns c
    t:0!t;
    labels:?[t;();();(distinct;s)];
    c:$[all null c;cols[t] except b,s;c];
-   rr:(lj/)split_help[t;b;s;c] each labels;
+   rr:b xasc (uj/)split_help[t;b;s;c] each labels;
    rr}
 /
 parms:.opts.get_opts[c]
