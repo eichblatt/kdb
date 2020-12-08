@@ -5,4 +5,5 @@
 \l /home/steve/kdb/util/file.q
 \l /home/steve/kdb/util/dict.q
 \l /home/steve/kdb/util/opts.q
+\l /home/steve/kdb/util/tbl.q
 
