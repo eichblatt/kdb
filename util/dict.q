@@ -2,7 +2,7 @@
 
 optd:{[d]
   if[type[d]~99h;:d];
-  d:$[type[d]~0h;.dict.kvd d;d];
+  d:$[type[d]>=0;.dict.kvd d;d];
   d:$[type[d]~-11h;()!();d];
   d}
 

@@ -23,12 +23,9 @@ stringify:{[s]
    if[type[s2]~type[("a";`b)]; s2:(.string.append_help/)[first[s2];1_s2]];
    new_str:.string.append_help[s1;s2]}
 
-.string.format:{[fmt;varlist]
+.string.format:{[fmt;vardict]
+   vardict:.dict.optd[vardict];
    if[not[.Q.ty[fmt]~"c"];'"Format string must be a string"];
-   elements:"%" vs fmt;
-   N_elem:count[elements]-1;
-   varlist:$[type[varlist]<0;N_elem#varlist;varlist];
-   if[not count[varlist]~N_elem;'"mismatching length of varlist and format"];
-   varlist:.string.stringify each varlist;
-   result:-3_raze elements,'varlist,enlist "EOF";
+   vardict:.string.stringify each vardict;
+   result:.string.ssr/[fmt;{"%",string[x],"%"} each key vardict;get vardict];
    result}; 
