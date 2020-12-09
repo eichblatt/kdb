@@ -5,7 +5,9 @@ is_hsym:{[path]
   first[.string.stringify[path]]~":"};
     
 remove:`b;
-name:`z;
+
+name:{[path] $[.file.is_hsym[path]; 1_string path;.string.stringify[path]]};
+
 fname:`x;
 
 .file.hsym:{[path] 
