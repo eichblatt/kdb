@@ -24,6 +24,7 @@ stringify:{[s]
    new_str:.string.append_help[s1;s2]}
 
 .string.format:{[fmt;vardict]
+   vardict:$[type[vardict]<0;.dict.kvd(`;vardict);vardict];
    vardict:.dict.optd[vardict];
    if[not[.Q.ty[fmt]~"c"];'"Format string must be a string"];
    vardict:.string.stringify each vardict;
