@@ -2,6 +2,8 @@
 
 gvcmd:"/usr/bin/gv -watch -resize -geometry 560x530 -widgetless ";
 gplotcmd:"gnuplot --persist ";
+preamble:("set border 3";"do for [i=1:20] { set linetype i lw 3 }";"set linetype 1 lc rgb \"black\"";"set linetype 2 lc rgb \"red\"";"set linetype 3 lc rgb \"orange\"";"set linetype 4 lc rgb \"green\"";"set linetype 4 lc rgb \"blue\"";"set linetype 4 lc rgb \"purple\"");
+
 
 if[not`outpath in key[.graph];
   outpath:.file.makepath[getenv[`HOME];".qgraph/","_" sv (string"dv"$.z.Z)except'".:"];
@@ -38,10 +40,11 @@ tbl_to_string:{[t]
 
  
 xyt:{[t;c;b;a;optd]
-  optd:.dict.optd[optd];
+  axlabels:.string.stringify each a;
+  optd:.dict.def[(`join;1b;`xlab;first axlabels;`ylab;last axlabels);optd];
   if[count[b]>1;'".graph.xyt: cannot handle multiple by cols"];
   by_group:not .Q.ty[b]~"B";
-  axlabels:.string.stringify each a;
+
   data:?[t;();.dict.kvd(`b;b);`x`y!a];
   grps:exec b from data;
   xydata:(uj/){[data;grp] t:flip data grp; `x xkey $[grp~0b;t;.tbl.rename[t;`y;grp]]}[data] each grps;
@@ -49,12 +52,13 @@ xyt:{[t;c;b;a;optd]
   ytype:first exec first t from select from (meta xydata) where not c=`x;
   xfmt:$[xtype in "dpzt";"set xdata time; set timefmt \"%Y-%m-%d\";";""];
   yfmt:$[ytype in "dpzt";"set ydata time; set timefmt \"%Y-%m-%d\";";""];
-  xytheader: enlist .string.format["set datafile separator \",\"; %xfmt% set autoscale fix";(`xfmt;xfmt)];
-  xytheader,:enlist .string.format["set xlabel \"%xlab%\" offset screen 0,0; set ylabel \"%ylab%\" offset screen 0,0";(`xlab;first axlabels;`ylab;last axlabels)];
+  xytheader: .graph.preamble;
+  xytheader,:enlist .string.format["set datafile separator \",\"; %xfmt% set autoscale fix";(`xfmt;xfmt)];
+  xytheader,:enlist .string.format["set xlabel \"%xlab%\" offset screen 0.4,0 right; set ylabel \"%ylab%\" offset screen 0,0.4 right";optd];
   xytdata:.graph.tbl_to_string[xydata];
 
   ycols:cols[xydata] except `x;
-  plotcmd0:", " sv {.string.format["$mydata using 1:%icol% title \"%title%\" with %linetype%";(`icol;y;`linetype;x;`title;z)]}[`lines]'[2+til count ycols;ycols];
+  plotcmd0:", " sv {.string.format["$mydata using 1:%icol% title \"%title%\" with %linetype% pt \".\"";(`icol;y;`linetype;x;`title;z)]}[$[optd`join;`linespoint;`points]]'[2+til count ycols;ycols];
   plotcmd:enlist "plot ",plotcmd0;
   write_gpfile[raze (xytheader;xytdata;plotcmd)];
   show_gpfile[optd];
