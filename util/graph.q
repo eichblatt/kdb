@@ -41,11 +41,13 @@ tbl_to_string:{[t]
  
 xyt:{[t;c;b;a;optd]
   axlabels:.string.stringify each a;
-  optd:.dict.def[(`join;1b;`xlab;first axlabels;`ylab;last axlabels);optd];
+  title:.string.stringify[c] except "`";
+  optd:.dict.def[(`join;1b;`xlab;first axlabels;`ylab;last axlabels;`title;title);optd];
   if[count[b]>1;'".graph.xyt: cannot handle multiple by cols"];
   by_group:not .Q.ty[b]~"B";
+  wc:$[.Q.ty[c]~"c";parse each "," vs c;c];
 
-  data:?[t;();.dict.kvd(`b;b);`x`y!a];
+  data:?[t;wc;.dict.kvd(`b;b);`x`y!a];
   grps:exec b from data;
   xydata:(uj/){[data;grp] t:flip data grp; `x xkey $[grp~0b;t;.tbl.rename[t;`y;grp]]}[data] each grps;
   xtype:first exec t from select from (meta xydata) where c=`x;
@@ -54,7 +56,7 @@ xyt:{[t;c;b;a;optd]
   yfmt:$[ytype in "dpzt";"set ydata time; set timefmt \"%Y-%m-%d\";";""];
   xytheader: .graph.preamble;
   xytheader,:enlist .string.format["set datafile separator \",\"; %xfmt% set autoscale fix";(`xfmt;xfmt)];
-  xytheader,:enlist .string.format["set xlabel \"%xlab%\" offset screen 0.4,0 right; set ylabel \"%ylab%\" offset screen 0,0.4 right";optd];
+  xytheader,:enlist .string.format["set title \"%title%\"; set xlabel \"%xlab%\" offset screen 0.4,0 right; set ylabel \"%ylab%\" offset screen 0,0.4 right";optd];
   xytdata:.graph.tbl_to_string[xydata];
 
   ycols:cols[xydata] except `x;
