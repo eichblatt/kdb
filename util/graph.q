@@ -1,6 +1,8 @@
 \d .graph
 
 gvcmd:"/usr/bin/gv -watch -resize -geometry 560x530 -widgetless ";
+gplotcmd:"gnuplot --persist ";
+
 if[not`outpath in key[.graph];
   outpath:.file.makepath[getenv[`HOME];".qgraph/","_" sv (string"dv"$.z.Z)except'".:"];
   plotcounter:0; currentplot:0];
@@ -14,14 +16,19 @@ removenulls:{[lis]
   if[not type[lis]~0h; :lis wher enot null lis];
   lis where not {any null x}each lis};
 
+current_filename:{[] .file.makepath[.graph.outpath;.string.append["plot";(-4#"0000",string[plotcounter];".gp")]]};
+
 write_gpfile:{[text]
    plotcounter::plotcounter+1;
    currentplot::plotcounter;
    if[not .file.exists[.graph.outpath];system "mkdir -p ",.file.name[.graph.outpath]];
-   outfile:.file.makepath[.graph.outpath;.string.append["plot";(-4#"0000",string[plotcounter];".gp")]];
+   outfile:.graph.current_filename[];
    -1 string outfile 0: text};
 
-/view_gpfile:{[optd]
+show_gpfile:{[optd]
+  optd:.dict.optd[optd];
+  system .string.append[.graph.gplotcmd;.file.name .graph.current_filename[]];
+  };
 
 tbl_to_string:{[t]
   headstring:enlist "$mydata << EOD";
@@ -30,25 +37,27 @@ tbl_to_string:{[t]
   raze (headstring;datastring;tailstring)};
 
  
-xyt:{[t;b;a;optd]
+xyt:{[t;c;b;a;optd]
+  optd:.dict.optd[optd];
   if[count[b]>1;'".graph.xyt: cannot handle multiple by cols"];
   by_group:not .Q.ty[b]~"B";
   axlabels:.string.stringify each a;
   data:?[t;();.dict.kvd(`b;b);`x`y!a];
   grps:exec b from data;
-  xydata:(uj/){[data;grp] `x xkey .tbl.rename[flip data grp;`y;grp]}[data] each grps;
-  xtype:first exec t from select from (meta ddd) where c=`x;
-  ytype:first exec first t from select from (meta ddd) where not c=`x;
+  xydata:(uj/){[data;grp] t:flip data grp; `x xkey $[grp~0b;t;.tbl.rename[t;`y;grp]]}[data] each grps;
+  xtype:first exec t from select from (meta xydata) where c=`x;
+  ytype:first exec first t from select from (meta xydata) where not c=`x;
   xfmt:$[xtype in "dpzt";"set xdata time; set timefmt \"%Y-%m-%d\";";""];
   yfmt:$[ytype in "dpzt";"set ydata time; set timefmt \"%Y-%m-%d\";";""];
   xytheader: enlist .string.format["set datafile separator \",\"; %xfmt% set autoscale fix";(`xfmt;xfmt)];
+  xytheader,:enlist .string.format["set xlabel \"%xlab%\" offset screen 0,0; set ylabel \"%ylab%\" offset screen 0,0";(`xlab;first axlabels;`ylab;last axlabels)];
   xytdata:.graph.tbl_to_string[xydata];
 
   ycols:cols[xydata] except `x;
-  /plotcmd0:", " sv {.string.format["$mydata using 1:%icol% title \"%title%\" with %linetype%";(`icol;y;`linetype;x;`title;z)]}[`linespoint]'[2+til count ycols;ycols];
   plotcmd0:", " sv {.string.format["$mydata using 1:%icol% title \"%title%\" with %linetype%";(`icol;y;`linetype;x;`title;z)]}[`lines]'[2+til count ycols;ycols];
   plotcmd:enlist "plot ",plotcmd0;
   write_gpfile[raze (xytheader;xytdata;plotcmd)];
+  show_gpfile[optd];
   1b};
 
 cdf:{[t;b;a;optd]
