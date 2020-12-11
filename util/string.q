@@ -3,6 +3,7 @@
 stringify:{[s]
    if[.Q.ty[s]~"c"; :s];
    if[.Q.ty[s]~"C";:enlist s];
+   if[s~();:""];
    if[.Q.ty[s] in "IJFDZPS ";:string[s]];
    if[type[s]<=0;:string[s]];
    '"Cannot Stringify Type of ",.Q.ty[s]};
