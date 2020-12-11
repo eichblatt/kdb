@@ -2,7 +2,7 @@
 
 gvcmd:"/usr/bin/gv -watch -resize -geometry 560x530 -widgetless ";
 gplotcmd:"gnuplot --persist ";
-preamble:("set border 3";"do for [i=1:20] { set linetype i lw 3 }";"set linetype 1 lc rgb \"black\"";"set linetype 2 lc rgb \"red\"";"set linetype 3 lc rgb \"orange\"";"set linetype 4 lc rgb \"green\"";"set linetype 4 lc rgb \"blue\"";"set linetype 4 lc rgb \"purple\"");
+preamble:("set border 3";"do for [i=1:20] { set linetype i lw 3 }";"set linetype 1 lc rgb \"black\"";"set linetype 2 lc rgb \"red\"";"set linetype 3 lc rgb \"orange\"";"set linetype 4 lc rgb \"green\"";"set linetype 4 lc rgb \"blue\"";"set linetype 4 lc rgb \"purple\"";"set key left");
 
 
 if[not`outpath in key[.graph];
@@ -39,10 +39,13 @@ tbl_to_string:{[t]
   raze (headstring;datastring;tailstring)};
 
  
-xyt:{[t;c;b;a;optd]
+xyt:{[t;c;b;a;opts]
   axlabels:.string.stringify each a;
   title:.string.stringify[c] except "`";
-  optd:.dict.def[(`join;1b;`xlab;first axlabels;`ylab;last axlabels;`title;title);optd];
+  optd:.dict.def[(`join;1b;`xlab;first axlabels;`ylab;last axlabels;`title;title);opts];
+  optd[`title]:.string.ssr[optd`title;"_";" "];
+  optd[`xlab]:.string.ssr[optd`xlab;"_";" "];
+  optd[`ylab]:.string.ssr[optd`ylab;"_";" "];
   if[count[b]>1;'".graph.xyt: cannot handle multiple by cols"];
   by_group:not .Q.ty[b]~"B";
   wc:$[.Q.ty[c]~"c";parse each "," vs c;c];
@@ -50,26 +53,45 @@ xyt:{[t;c;b;a;optd]
   data:?[t;wc;.dict.kvd(`b;b);`x`y!a];
   grps:exec b from data;
   xydata:(uj/){[data;grp] t:flip data grp; `x xkey $[grp~0b;t;.tbl.rename[t;`y;grp]]}[data] each grps;
+
   xtype:first exec t from select from (meta xydata) where c=`x;
   ytype:first exec first t from select from (meta xydata) where not c=`x;
   xfmt:$[xtype in "dpzt";"set xdata time; set timefmt \"%Y-%m-%d\";";""];
   yfmt:$[ytype in "dpzt";"set ydata time; set timefmt \"%Y-%m-%d\";";""];
-  xytheader: .graph.preamble;
-  xytheader,:enlist .string.format["set datafile separator \",\"; %xfmt% set autoscale fix";(`xfmt;xfmt)];
-  xytheader,:enlist .string.format["set title \"%title%\"; set xlabel \"%xlab%\" offset screen 0.4,0 right; set ylabel \"%ylab%\" offset screen 0,0.4 right";optd];
-  xytdata:.graph.tbl_to_string[xydata];
+  header: .graph.preamble;
+  header,:enlist .string.format["set datafile separator \",\"; %xfmt% set autoscale fix";(`xfmt;xfmt)];
+  header,:enlist .string.format["set title \"%title%\"; set xlabel \"%xlab%\" offset screen 0.4,0 right; set ylabel \"%ylab%\" offset screen 0,0.4 right";optd];
+  data:.graph.tbl_to_string[xydata];
 
   ycols:cols[xydata] except `x;
   plotcmd0:", " sv {.string.format["$mydata using 1:%icol% title \"%title%\" with %linetype% pt \".\"";(`icol;y;`linetype;x;`title;z)]}[$[optd`join;`linespoint;`points]]'[2+til count ycols;ycols];
   plotcmd:enlist "plot ",plotcmd0;
-  write_gpfile[raze (xytheader;xytdata;plotcmd)];
+  write_gpfile[raze (header;data;plotcmd)];
   show_gpfile[optd];
   1b};
 
-cdf:{[t;b;a;optd]
+cdf:{[t;c;b;a;opts]
+  xlabel:.string.stringify a;
+  title:.string.stringify[c] except "`";
+  optd:.dict.def[(`join;1b;`xlab;xlabel;`ylab;`;`title;title;`normalize;1b);opts];
+  optd:.dict.def[(`join;1b;`xlab;xlabel;`ylab;$[optd`normalize;`cumfrac;`cumqty];`title;title;`normalize;1b);opts];
+  optd[`title]:.string.ssr[optd`title;"_";" "];
+  optd[`xlab]:.string.ssr[optd`xlab;"_";" "];
+  optd[`ylab]:.string.ssr[optd`ylab;"_";" "];
+  if[count[b]>1;'".graph.xyt: cannot handle multiple by cols"];
+  by_group:not .Q.ty[b]~"B";
+  wc:$[.Q.ty[c]~"c";parse each "," vs c;c];
+
+  data:?[t;wc;.dict.kvd(`b;b);.dict.kvd(`x;a)];
+  grps:exec b from data;
+  cdfdata:raze {[data;grp;optd] t:update byvar:grp,cumfrac:i%count[i],cumqty:i from `x xasc select from flip[data grp] where not null x; t}[data;;optd] each grps;
+  .graph.xyt[cdfdata;();`byvar;(`x;$[optd[`normalize];`cumfrac;`cumqty]);optd];
+
+   1b};
+
+profile:{[t;c;b;a;optd]
   1b};
 
-profile:{[t;b;a;optd]
-  1b};
-
+validate:{[] 
+  0b};
 
