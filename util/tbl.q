@@ -18,6 +18,14 @@ split:{[t;b;s;c] // split table by b on columns s, return columns c
    c:$[all null c;cols[t] except b,s;c];
    rr:b xasc (uj/)split_help[t;b;s;c] each labels;
    rr}
+
+stack:{[t;b;c;optd] // stack table columns c by b.
+   if[null c;c:cols[t] except b];
+   base:?[t;();{x!x}b,();{x!{(last;x)}each x}c,()];
+   m:0!select from (meta base) where not c in b;
+   m:update parmname:.string.append[`parm] each t,valname:.string.append[`val]each t from m; 
+   stakd:b xasc raze {[tt;elem] b:cols key[tt];0!?[0!tt;();{x!x}b,();(elem`parmname`valname)!(enlist[elem`c];(last;elem`c))]}[base] each m;
+   stakd};
 /
 parms:.opts.get_opts[c]
 \
