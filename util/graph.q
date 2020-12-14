@@ -41,7 +41,7 @@ tbl_to_string:{[t]
 xyt:{[t;c;b;a;opts]
   axlabels:.string.stringify each a;
   title:.string.ssr[.string.stringify[c];"`";" "];
-  optd:.dict.def[(`join;1b;`xlab;first axlabels;`ylab;$[count[a]~2;axlabels 1;`y];`title;title);opts];
+  optd:.dict.def[(`join;1b;`xlab;first axlabels;`ylab;$[count[a]~2;axlabels 1;`y];`title;title;`accumulate;0b);opts];
   optd[`title]:.string.ssr[optd`title;"_";" "];
   optd[`xlab]:.string.ssr[optd`xlab;"_";" "];
   optd[`ylab]:.string.ssr[optd`ylab;"_";" "];
@@ -65,6 +65,7 @@ xyt:{[t;c;b;a;opts]
   header: .graph.preamble;
   header,:enlist .string.format["set datafile separator \",\"; %xfmt% set autoscale fix";(`xfmt;xfmt)];
   header,:enlist .string.format["set title \"%title%\"; set xlabel \"%xlab%\" offset screen 0.4,0 right; set ylabel \"%ylab%\" offset screen 0,0.4 right";optd];
+  breakx;
   xydata:$[bargraph;`n xcols update n:i from rotate[1;cols xydata]#0!xydata;0!xydata];
   data:.graph.tbl_to_string[xydata];
 
