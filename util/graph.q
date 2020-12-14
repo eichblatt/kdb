@@ -2,8 +2,7 @@
 
 gvcmd:"/usr/bin/gv -watch -resize -geometry 560x530 -widgetless ";
 gplotcmd:"gnuplot --persist ";
-preamble:("set border 3";"do for [i=1:20] { set linetype i lw 3 }";"set linetype 1 lc rgb \"black\"";"set linetype 2 lc rgb \"red\"";"set linetype 3 lc rgb \"orange\"";"set linetype 4 lc rgb \"green\"";"set linetype 4 lc rgb \"blue\"";"set linetype 4 lc rgb \"purple\"";"set key left");
-
+preamble:("set border 3";"do for [i=1:20] { set linetype i lw 3 }";"set linetype 1 lc rgb \"black\"";"set linetype 2 lc rgb \"red\"";"set linetype 3 lc rgb \"orange\"";"set linetype 4 lc rgb \"green\"";"set linetype 4 lc rgb \"blue\"";"set linetype 4 lc rgb \"purple\"";"set key left";"set boxwidth 0.5;set style fill solid");
 
 if[not`outpath in key[.graph];
   outpath:.file.makepath[getenv[`HOME];".qgraph/","_" sv (string"dv"$.z.Z)except'".:"];
@@ -41,8 +40,8 @@ tbl_to_string:{[t]
  
 xyt:{[t;c;b;a;opts]
   axlabels:.string.stringify each a;
-  title:.string.stringify[c] except "`";
-  optd:.dict.def[(`join;1b;`xlab;first axlabels;`ylab;last axlabels;`title;title);opts];
+  title:.string.ssr[.string.stringify[c];"`";" "];
+  optd:.dict.def[(`join;1b;`xlab;first axlabels;`ylab;$[count[a]~2;axlabels 1;`y];`title;title);opts];
   optd[`title]:.string.ssr[optd`title;"_";" "];
   optd[`xlab]:.string.ssr[optd`xlab;"_";" "];
   optd[`ylab]:.string.ssr[optd`ylab;"_";" "];
@@ -50,21 +49,29 @@ xyt:{[t;c;b;a;opts]
   by_group:not .Q.ty[b]~"B";
   wc:$[.Q.ty[c]~"c";parse each "," vs c;c];
 
-  data:?[t;wc;.dict.kvd(`b;b);`x`y!a];
+  ylist:.string.append[`y] each til -1+count a;
+  data:?[t;wc;.dict.kvd(`b;b);(`x,ylist)!a];
   grps:exec b from data;
-  xydata:(uj/){[data;grp] t:flip data grp; `x xkey $[grp~0b;t;.tbl.rename[t;`y;grp]]}[data] each grps;
+  xydata:(uj/){[data;ylist;grp] t:flip data grp; `x xkey $[grp~0b;t;.tbl.rename[t;ylist;.string.append[;("_";grp)]'[ylist]]]}[data;ylist] each grps;
 
+  labels:raze $[first[grps]~0b;1_a;count[a]~2;grps;{[y;g] {[y;g].string.append[y;("_";g)]}[;g] each y}[(1_a)] each grps]; 
+  xydata:`x xasc .tbl.rename[xydata;cols[xydata] except `x;labels];
+  
   xtype:first exec t from select from (meta xydata) where c=`x;
   ytype:first exec first t from select from (meta xydata) where not c=`x;
   xfmt:$[xtype in "dpzt";"set xdata time; set timefmt \"%Y-%m-%d\";";""];
+  bargraph:xtype in "s";
   yfmt:$[ytype in "dpzt";"set ydata time; set timefmt \"%Y-%m-%d\";";""];
   header: .graph.preamble;
   header,:enlist .string.format["set datafile separator \",\"; %xfmt% set autoscale fix";(`xfmt;xfmt)];
   header,:enlist .string.format["set title \"%title%\"; set xlabel \"%xlab%\" offset screen 0.4,0 right; set ylabel \"%ylab%\" offset screen 0,0.4 right";optd];
+  xydata:$[bargraph;`n xcols update n:i from rotate[1;cols xydata]#0!xydata;0!xydata];
   data:.graph.tbl_to_string[xydata];
 
-  ycols:cols[xydata] except `x;
-  plotcmd0:", " sv {.string.format["$mydata using 1:%icol% title \"%title%\" with %linetype% pt \".\"";(`icol;y;`linetype;x;`title;z)]}[$[optd`join;`linespoint;`points]]'[2+til count ycols;ycols];
+  ycols:cols[xydata] except `x`n;
+  plotcmd0:$[bargraph; 
+      ", " sv {.string.format["$mydata using 1:%icol%:xtic(%xtic%)title \"%title%\" with boxes";(`icol;y;`xtic;x;`title;z)]}[count[ycols]+2]'[2+til count ycols;ycols];
+      ", " sv {.string.format["$mydata using 1:%icol% title \"%title%\" with %linetype% pt \".\"";(`icol;y;`linetype;x;`title;z)]}[$[optd`join;`linespoint;`points]]'[2+til count ycols;ycols]];
   plotcmd:enlist "plot ",plotcmd0;
   write_gpfile[raze (header;data;plotcmd)];
   show_gpfile[optd];
@@ -90,6 +97,9 @@ cdf:{[t;c;b;a;opts]
    1b};
 
 profile:{[t;c;b;a;optd]
+  1b};
+
+bar:{[t;c;b;a;optd]
   1b};
 
 validate:{[] 

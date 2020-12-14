@@ -1,10 +1,10 @@
 \d .tbl
 
 rename:{[t;c1;c2] // rename columns c1 in table t to c2
-   t:.Q.id[t];
    allcols:cols[t];
    newcols:@[allcols;where allcols in c1;:;c2];
    t:newcols xcol t;
+   t:.Q.id[t];
    t};
 
 split_help:{[t;b;s;c;x] 
