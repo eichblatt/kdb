@@ -2,7 +2,8 @@
 
 stringify:{[s]
    if[.Q.ty[s]~"c"; :s];
-   if[.Q.ty[s]~"C";:enlist s];
+   if[(.Q.ty[s]~"C") and type[s]~-10h;:enlist s]; // this is a string
+   if[(.Q.ty[s]~"C") and all (type each s)=10h;:" " sv s]; // this is a list of strings
    if[s~();:""];
    if[.Q.ty[s] in "IJFDZPS ";:string[s]];
    if[type[s]<=0;:string[s]];
