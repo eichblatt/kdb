@@ -41,7 +41,7 @@ tbl_to_string:{[t]
 xyt:{[t;c;b;a;opts]
   axlabels:.string.stringify each a;
   title:.string.ssr[.string.stringify[c];"`";" "];
-  optd:.dict.def[(`join;1b;`xlab;first axlabels;`ylab;$[count[a]~2;axlabels 1;`y];`title;title;`xsort;1b);opts];
+  optd:.dict.def[(`join;1b;`xlab;first axlabels;`ylab;$[count[a]~2;axlabels 1;`y];`title;title;`xsort;1b;`terminal;`;`size;"600,400";`output;"");opts];
   optd[`title]:.string.ssr[optd`title;"_";" "];
   optd[`xlab]:.string.ssr[optd`xlab;"_";" "];
   optd[`ylab]:.string.ssr[optd`ylab;"_";" "];
@@ -63,6 +63,8 @@ xyt:{[t;c;b;a;opts]
   bargraph:xtype in "s";
   yfmt:$[ytype in "dpzt";"set ydata time; set timefmt \"%Y-%m-%d\";";""];
   header: .graph.preamble;
+  if[not null optd[`terminal];header,:enlist .string.format["set terminal %terminal% size %size%";optd]];
+  if[not optd[`output]~"";header,:enlist .string.format["set output \"%output%\"";optd]];
   header,:enlist .string.format["set datafile separator \",\"; %xfmt% set autoscale fix";(`xfmt;xfmt)];
   header,:enlist .string.format["set title \"%title%\"; set xlabel \"%xlab%\" offset screen 0.4,0 right; set ylabel \"%ylab%\" offset screen 0,0.4 right";optd];
   xydata:$[bargraph;`n xcols update n:i from rotate[1;cols xydata]#0!xydata;0!xydata];
