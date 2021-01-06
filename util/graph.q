@@ -2,7 +2,29 @@
 
 gvcmd:"/usr/bin/gv -watch -resize -geometry 560x530 -widgetless ";
 gplotcmd:"gnuplot --persist ";
-preamble:("set border 3";"do for [i=1:20] { set linetype i lw 3 }";"set linetype 1 lc rgb \"black\"";"set linetype 2 lc rgb \"red\"";"set linetype 3 lc rgb \"orange\"";"set linetype 4 lc rgb \"green\"";"set linetype 4 lc rgb \"blue\"";"set linetype 4 lc rgb \"purple\"";"set key left";"set boxwidth 0.5;set style fill solid");
+preamble:("set border 3";"do for [i=1:20] { set linetype i lw 3 }";
+  "set linetype 1 lc rgb \"black\"";
+  "set linetype 2 lc rgb \"#df0000\"";
+  "set linetype 3 lc rgb \"#ff9010\"";
+  "set linetype 4 lc rgb \"#dfdf00\"";
+  "set linetype 5 lc rgb \"#009900\"";
+  "set linetype 6 lc rgb \"#000099\"";
+  "set linetype 7 lc rgb \"#990099\"";
+  "set linetype 8 lc rgb \"#00dddd\"";
+  "set linetype 8 lc rgb \"#ffa0a0\"";
+  "set linetype 9 lc rgb \"#00ffc1\"";
+  "set linetype 10 lc rgb \"#00c1ff\"";
+  "set linetype 11 lc rgb \"#ff0999\"";
+  "set linetype 12 lc \"#80c080\"";
+  "set linetype 13 lc \"#905010\"";
+  "set linetype 14 lc \"#b050ff\"";
+  "set linetype 15 lc \"#108080\"";
+  "set linetype 16 lc \"#60f010\"";
+  "set linetype 17 lc \"#409000\"";
+  "set linetype 18 lc \"#607020\"";
+  "set linetype 19 lc \"#a0f080\"";
+  "set linetype 20 lc \"#005555\"";
+  "set key left; set boxwidth 0.5;set style fill solid");
 
 if[not`outpath in key[.graph];
   outpath:.file.makepath[getenv[`HOME];".qgraph/","_" sv (string"dv"$.z.Z)except'".:"];
