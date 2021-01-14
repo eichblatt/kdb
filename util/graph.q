@@ -62,7 +62,7 @@ tbl_to_string:{[t]
  
 xyt:{[t;c;b;a;opts]
   axlabels:.string.stringify each a;
-  title:.string.ssr[.string.stringify[c];"`";" "];
+  title:$[.Q.ty[c]~"c";.string.ssr[.string.stringify[c];"`";" "];" "];
   optd:.dict.def[(`join;1b;`xlab;first axlabels;`ylab;$[count[a]~2;axlabels 1;`y];`title;title;`xsort;1b;`terminal;`;`size;"600,400";`output;"");opts];
   optd[`title]:.string.ssr[optd`title;"_";" "];
   optd[`xlab]:.string.ssr[optd`xlab;"_";" "];
