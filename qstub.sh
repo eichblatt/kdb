@@ -28,4 +28,3 @@ done
 set -- "${POSITIONAL[@]}"
 echo "File is ${FILE}"
 cp $STUBFILE $FILE
-
