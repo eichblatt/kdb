@@ -10,9 +10,14 @@
 
 get_tzdb:{[] 
    if[`tzdb in key .dt;:.dt.tzdb];
-   country:flip `country`country_name!("SS";csv)0:.file.makepath[.dt.tzdbpath;"country.csv"];
+   if[not .file.exists[.dt.tzdbpath]; .log.warn .string.format["TZ database missing. Download from https://timezonedb.com, and place in %p%";(`p;.dt.tzdbpath)]];
+   /country:flip `country`country_name!("SS";csv)0:.file.makepath[.dt.tzdbpath;"country.csv"];
    timezone:flip `zone_id`tz_code`time_start`gmt_offset`dst!("ISZIB";csv)0:.file.makepath[.dt.tzdbpath;"timezone.csv"];
    zone:flip `zone_id`country_code`tz!("ISS";csv)0:.file.makepath[.dt.tzdbpath;"zone.csv"];
+   .dt.tzdb:select tz,time_start,gmt_offset from (timezone lj 1!zone) where not null time_start;
+   .dt.tzdb:.dt.tzdb,update tz:`est from select from (.dt.tzdb) where tz=`$"America/New_York";   // Add `est for convenience
+   .dt.tzdb:.dt.tzdb,update tz:`qst,gmt_offset:gmt_offset+7*3600 from select from (.dt.tzdb) where tz=`$"America/New_York"; // qst midnight is global market close
+
    .dt.tzdb:`time_start xasc select tz,time_start,gmt_offset from (timezone lj 1!zone) where not null time_start;
    .dt.tzdb};
 
