@@ -10,19 +10,20 @@
 
 get_tzdb:{[] 
    if[`tzdb in key .dt;:.dt.tzdb];
-   if[not .file.exists[.dt.tzdbpath]; .log.warn .string.format["TZ database missing. Download from https://timezonedb.com, and place in %p%";(`p;.dt.tzdbpath)]];
-   /country:flip `country`country_name!("SS";csv)0:.file.makepath[.dt.tzdbpath;"country.csv"];
+   if[not .file.exists[.dt.tzdbpath]; .log.error .string.format["TZ database missing. Download from https://timezonedb.com, and place in %p%";(`p;.dt.tzdbpath)]];
+   /country:flip `country`country_name!("SS";csv)0:.file.makepath[.dt.tzdbpath;"country.csv"]; // not used.
    timezone:flip `zone_id`tz_code`time_start`gmt_offset`dst!("ISZIB";csv)0:.file.makepath[.dt.tzdbpath;"timezone.csv"];
    zone:flip `zone_id`country_code`tz!("ISS";csv)0:.file.makepath[.dt.tzdbpath;"zone.csv"];
    .dt.tzdb:select tz,time_start,gmt_offset from (timezone lj 1!zone) where not null time_start;
    .dt.tzdb:.dt.tzdb,update tz:`est from select from (.dt.tzdb) where tz=`$"America/New_York";   // Add `est for convenience
    .dt.tzdb:.dt.tzdb,update tz:`qst,gmt_offset:gmt_offset+7*3600 from select from (.dt.tzdb) where tz=`$"America/New_York"; // qst midnight is global market close
-
-   .dt.tzdb:`time_start xasc select tz,time_start,gmt_offset from (timezone lj 1!zone) where not null time_start;
+   .dt.tzdb:.dt.tzdb,update tz:`utc,gmt_offset:0 from 1#select from .dt.tzdb where time_start=min time_start; // utc
+   .dt.tzdb:`time_start xasc .dt.tzdb; 
    .dt.tzdb};
 
 convert_tz:{[dt;tz_from;tz_to]
    dtype:.Q.ty[dt];
+   if[not dtype in "ZzPp"; .log.error "datetime argument must be of type Z or P"; '"invalid dt format"];
    offset_fromd:`s#exec time_start!gmt_offset from .dt.get_tzdb[] where tz=tz_from;
    offset_tod:  `s#exec time_start!gmt_offset from .dt.get_tzdb[] where tz=tz_to;
    
