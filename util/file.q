@@ -19,5 +19,27 @@ fname:`x;
 
 makepath:{[head;tail] .file.hsym[.string.append[head;("/";tail)]]};
 
-parent:`z
-dir:`z
+stat_raw:{[p]
+  p:.file.hsym[p];
+  if[not .file.exists[p]; :8#enlist""];
+  stat:system "stat ",.file.name[p];
+  stat}
+ 
+is_dir:{[p] .file.stat_raw[p][1] like "*directory"};
+parent:{[p] 
+  parent_dir:.file.add_trailing_slash ("/" sv -1_"/" vs .file.name p);
+  if[not .file.exists[parent_dir];.log.error "parent of path ",.file.name[p]," does not exist"; '"no such parent"];
+  parent_dir};
+
+rm_trailing_slash:{[p] 
+  pn:.file.name .file.rm_duplicate_slashes .file.name[p];
+  pn:$["/"~last pn;-1_pn;pn];
+  .file.hsym[pn]};
+
+rm_duplicate_slashes:{[p] .file.hsym {ssr[x;"//";"/"]}/[.file.name[p]]};
+add_trailing_slash:{[p] .file.rm_duplicate_slashes[.file.name[p],"/"]};
+
+dirname:{[p] $[.file.is_dir[p];.file.add_trailing_slash[p];.file.parent[p]]}
+
+savesplay:{[p;t] 
+  1b} 
