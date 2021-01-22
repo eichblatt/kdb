@@ -28,7 +28,7 @@ stat_raw:{[p]
 is_dir:{[p] .file.stat_raw[p][1] like "*directory"};
 parent:{[p] 
   parent_dir:.file.add_trailing_slash ("/" sv -1_"/" vs .file.name p);
-  if[not .file.exists[parent_dir];.log.error "parent of path ",.file.name[p]," does not exist"; '"no such parent"];
+  if[not .file.exists[parent_dir];.log.warn "parent of path ",.file.name[p]," does not exist"];
   parent_dir};
 
 rm_trailing_slash:{[p] 
@@ -41,5 +41,8 @@ add_trailing_slash:{[p] .file.rm_duplicate_slashes[.file.name[p],"/"]};
 
 dirname:{[p] $[.file.is_dir[p];.file.add_trailing_slash[p];.file.parent[p]]}
 
-savesplay:{[p;t] 
-  1b} 
+savesplay:{[p;t] .file.add_trailing_slash[p] set .Q.en[.file.parent[p]] t};
+
+.file.get:{[p] 
+  if[.file.is_dir[p];load .file.makepath[.file.parent[p];"sym"];:get .file.hsym p];
+  get .file.hsym p};
