@@ -59,6 +59,13 @@ tbl_to_string:{[t]
   tailstring:enlist "EOD";
   raze (headstring;datastring;tailstring)};
 
+maxamillion:{[xydata]
+  // reduce a list of (x,y) points to at most 300*300 = 90000 points, which is about all you can see on a graph.
+  if[count[xydata]<1e5;:xydata];
+  c:exec c from (meta xydata) where not t in "s";
+  xyd:distinct ![xydata;();0b;c!{(.math.xround;(%;(-;(max;x);(min;x));300);x)}each c];
+  xyd};
+
  
 xyt:{[t;c;b;a;opts]
   axlabels:.string.stringify each a;
@@ -90,6 +97,7 @@ xyt:{[t;c;b;a;opts]
   header,:enlist .string.format["set datafile separator \",\"; %xfmt% set autoscale fix";(`xfmt;xfmt)];
   header,:enlist .string.format["set title \"%title%\"; set xlabel \"%xlab%\" offset screen 0.4,0 right; set ylabel \"%ylab%\" offset screen 0,0.4 right";optd];
   xydata:$[bargraph;`n xcols update n:i from rotate[1;cols xydata]#0!xydata;0!xydata];
+  xydata:.graph.maxamillion[xydata];
   data:.graph.tbl_to_string[xydata];
 
   ycols:cols[xydata] except `x`n;

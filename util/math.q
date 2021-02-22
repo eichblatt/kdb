@@ -10,6 +10,18 @@ k) p95:{avg x(<x)@_.95*-1 0+#x,:()};
 
 simple_stats:{[list]
   .dict.kvd(`N;count list;`mean;avg list;`std;sdev list;`mad;mad list;`min;min list;`p5;p5 list;`p25;p25 list;`median;med list;`p75;p75 list;`p95;p95 list;`max;max list)};
+
+xround:{[x;v]
+  m:mod[v;x]; d:div[v;x];
+  round_up:m>=x%2; 
+  x*d+ round_up}
+
+zscore:{[l;z]
+  ml:mavg[z;l];
+  dl:mdev[z;l];
+  l:(l-ml)%dl;
+  l}
+
 /
 .math.simple_stats[100]
 \
